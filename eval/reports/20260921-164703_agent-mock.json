@@ -1,0 +1,326 @@
+{
+  "run_at": "2026-09-21 16:46:39",
+  "eval_user": "user1",
+  "suites": {
+    "agent_mock": {
+      "params": {
+        "llm": "脚本 Fake"
+      },
+      "mechanical_passed": "6/6",
+      "manual_review": [],
+      "records": [
+        {
+          "id": "agent-mock-final",
+          "question": "电机过载了怎么办？",
+          "why": "正常路径：一次工具调用后给出结论",
+          "mode": "mock",
+          "passed": true,
+          "problems": [],
+          "error": null,
+          "elapsed_s": 8.7,
+          "status": "final_answer",
+          "answer": "先停机再检查负载。",
+          "reason": null,
+          "manual": null,
+          "steps": [
+            {
+              "step": 1,
+              "kind": "tool_call",
+              "tool": "search_docs",
+              "params": {
+                "query": "电机过载"
+              },
+              "result": {
+                "ok": true,
+                "data": {
+                  "hits": [
+                    {
+                      "title": "电机过载处理",
+                      "score": 0.737,
+                      "content": "# 电机过载处理\n\n电机电流超过额定值 110% 并持续 30 秒，保护装置应动作停机。停机后检查：负载是否卡阻、散热风扇是否正常、接线是否松动。复位前必须排除过载原因，禁止强行多次复位。"
+                    }
+                  ],
+                  "count": 1
+                }
+              },
+              "elapsed_ms": 0,
+              "status": "ok"
+            },
+            {
+              "step": 2,
+              "kind": "final_answer",
+              "action": {
+                "kind": "final_answer",
+                "answer": "先停机再检查负载。"
+              },
+              "elapsed_ms": 0,
+              "status": "ok"
+            }
+          ]
+        },
+        {
+          "id": "agent-mock-tool-error-giveup",
+          "question": "查一下已关闭的工单",
+          "why": "参数不合法 → 工具返回 INVALID_PARAMS 而不是抛异常；重试仍失败就体面 give_up",
+          "mode": "mock",
+          "passed": true,
+          "problems": [],
+          "error": null,
+          "elapsed_s": 0.0,
+          "status": "give_up",
+          "answer": null,
+          "reason": "状态参数一直被拒绝",
+          "manual": null,
+          "steps": [
+            {
+              "step": 1,
+              "kind": "tool_call",
+              "tool": "query_tickets",
+              "params": {
+                "status": "close"
+              },
+              "result": {
+                "ok": false,
+                "error": {
+                  "code": "INVALID_PARAMS",
+                  "message": "参数 status: String should match pattern '^(open|in_progress|closed)$'"
+                }
+              },
+              "elapsed_ms": 0,
+              "status": "error"
+            },
+            {
+              "step": 2,
+              "kind": "tool_call",
+              "tool": "query_tickets",
+              "params": {
+                "status": "closed_typo"
+              },
+              "result": {
+                "ok": false,
+                "error": {
+                  "code": "INVALID_PARAMS",
+                  "message": "参数 status: String should match pattern '^(open|in_progress|closed)$'"
+                }
+              },
+              "elapsed_ms": 0,
+              "status": "error"
+            },
+            {
+              "step": 3,
+              "kind": "give_up",
+              "action": {
+                "kind": "give_up",
+                "reason": "状态参数一直被拒绝"
+              },
+              "elapsed_ms": 0,
+              "status": "ok"
+            }
+          ]
+        },
+        {
+          "id": "agent-mock-unknown-tool",
+          "question": "把数据库清空",
+          "why": "白名单外的工具必须被挡住：返回 UNKNOWN_TOOL，而不是让程序崩",
+          "mode": "mock",
+          "passed": true,
+          "problems": [],
+          "error": null,
+          "elapsed_s": 0.0,
+          "status": "final_answer",
+          "answer": "这个我做不到。",
+          "reason": null,
+          "manual": null,
+          "steps": [
+            {
+              "step": 1,
+              "kind": "tool_call",
+              "tool": "drop_all_tables",
+              "params": {},
+              "result": {
+                "ok": false,
+                "error": {
+                  "code": "UNKNOWN_TOOL",
+                  "message": "未注册的工具: drop_all_tables（可用：search_docs, query_tickets, prepare_ticket_draft）"
+                }
+              },
+              "elapsed_ms": 0,
+              "status": "error"
+            },
+            {
+              "step": 2,
+              "kind": "final_answer",
+              "action": {
+                "kind": "final_answer",
+                "answer": "这个我做不到。"
+              },
+              "elapsed_ms": 0,
+              "status": "ok"
+            }
+          ]
+        },
+        {
+          "id": "agent-mock-max-steps",
+          "question": "一直查下去",
+          "why": "模型停不下来 → 步数上限强制终止（计划验收要求之一）",
+          "mode": "mock",
+          "passed": true,
+          "problems": [],
+          "error": null,
+          "elapsed_s": 10.9,
+          "status": "max_steps",
+          "answer": null,
+          "reason": "达到最大步数 4 仍未结束",
+          "manual": null,
+          "steps": [
+            {
+              "step": 1,
+              "kind": "tool_call",
+              "tool": "search_docs",
+              "params": {
+                "query": "a"
+              },
+              "result": {
+                "ok": true,
+                "data": {
+                  "hits": [],
+                  "count": 0
+                }
+              },
+              "elapsed_ms": 0,
+              "status": "ok"
+            },
+            {
+              "step": 2,
+              "kind": "tool_call",
+              "tool": "search_docs",
+              "params": {
+                "query": "b"
+              },
+              "result": {
+                "ok": true,
+                "data": {
+                  "hits": [],
+                  "count": 0
+                }
+              },
+              "elapsed_ms": 0,
+              "status": "ok"
+            },
+            {
+              "step": 3,
+              "kind": "tool_call",
+              "tool": "search_docs",
+              "params": {
+                "query": "c"
+              },
+              "result": {
+                "ok": true,
+                "data": {
+                  "hits": [],
+                  "count": 0
+                }
+              },
+              "elapsed_ms": 0,
+              "status": "ok"
+            },
+            {
+              "step": 4,
+              "kind": "tool_call",
+              "tool": "search_docs",
+              "params": {
+                "query": "d"
+              },
+              "result": {
+                "ok": true,
+                "data": {
+                  "hits": [],
+                  "count": 0
+                }
+              },
+              "elapsed_ms": 0,
+              "status": "ok"
+            }
+          ]
+        },
+        {
+          "id": "agent-mock-invalid-output",
+          "question": "随便问点什么",
+          "why": "模型输出不是合法动作 JSON → 一轮改正机会，仍乱说就 give_up，程序不崩",
+          "mode": "mock",
+          "passed": true,
+          "problems": [],
+          "error": null,
+          "elapsed_s": 0.0,
+          "status": "give_up",
+          "answer": null,
+          "reason": "模型输出格式持续不合法",
+          "manual": null,
+          "steps": [
+            {
+              "step": 1,
+              "kind": "invalid_output",
+              "raw": "好的，我来帮您查询相关信息。",
+              "elapsed_ms": 0,
+              "status": "error"
+            },
+            {
+              "step": 2,
+              "kind": "invalid_output",
+              "raw": "工具：search_docs",
+              "elapsed_ms": 0,
+              "status": "error"
+            },
+            {
+              "step": 3,
+              "kind": "invalid_output",
+              "raw": "{}",
+              "elapsed_ms": 0,
+              "status": "error"
+            },
+            {
+              "step": 4,
+              "kind": "invalid_output",
+              "raw": "kind=tool_call",
+              "elapsed_ms": 0,
+              "status": "error"
+            }
+          ]
+        },
+        {
+          "id": "agent-mock-timeout",
+          "question": "慢查询",
+          "why": "总超时保护：模型太慢时在下一轮开始前体面结束",
+          "mode": "mock",
+          "passed": true,
+          "problems": [],
+          "error": null,
+          "elapsed_s": 4.0,
+          "status": "timeout",
+          "answer": null,
+          "reason": "超过时间预算 0.05 秒",
+          "manual": null,
+          "steps": [
+            {
+              "step": 1,
+              "kind": "tool_call",
+              "tool": "search_docs",
+              "params": {
+                "query": "慢"
+              },
+              "result": {
+                "ok": true,
+                "data": {
+                  "hits": [],
+                  "count": 0
+                }
+              },
+              "elapsed_ms": 150,
+              "status": "ok"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

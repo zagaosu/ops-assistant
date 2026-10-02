@@ -1,0 +1,386 @@
+.page {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 0 16px;
+  text-align: left;
+}
+
+h1 {
+  font-size: 22px;
+}
+
+.error {
+  color: #c0392b;
+}
+
+/* ---- 登录卡片 ---- */
+.login-card {
+  max-width: 340px;
+  margin: 80px auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.login-card h1 {
+  margin: 0 0 4px;
+}
+
+.login-hint {
+  color: #888;
+  font-size: 13px;
+  margin: 0 0 8px;
+}
+
+.login-card input {
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 15px;
+}
+
+.login-card button {
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  background: #2b6cb0;
+  color: #fff;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+/* ---- 顶栏 ---- */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.who {
+  color: #555;
+  margin-right: 10px;
+}
+
+.ghost {
+  background: none;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+/* ---- 会话布局 ---- */
+.chat-layout {
+  display: flex;
+  gap: 16px;
+  margin: 16px 0 32px;
+  height: 440px;
+}
+
+.session-list {
+  width: 220px;
+  border-right: 1px solid #e2e2e2;
+  padding-right: 10px;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.new-session {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px dashed #2b6cb0;
+  background: none;
+  color: #2b6cb0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.session-item {
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 4px;
+}
+
+.session-item:hover {
+  background: #f0f4f8;
+}
+
+.session-item.active {
+  background: #e3edf8;
+}
+
+.session-title {
+  font-size: 14px;
+}
+
+.session-time {
+  font-size: 12px;
+  color: #999;
+}
+
+.chat-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px;
+}
+
+.msg {
+  max-width: 82%;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  white-space: pre-wrap;
+}
+
+.msg-user {
+  align-self: flex-end;
+  background: #2b6cb0;
+  color: #fff;
+}
+
+.msg-assistant {
+  align-self: flex-start;
+  background: #f1f3f5;
+}
+
+.side-hint {
+  color: #999;
+  font-size: 13px;
+}
+
+.ask-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.ask-row input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 15px;
+}
+
+.ask-row button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  background: #2b6cb0;
+  color: #fff;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.ask-row button:disabled {
+  background: #90b4d8;
+  cursor: default;
+}
+
+/* ---- 工单 ---- */
+.tickets h2 {
+  font-size: 18px;
+}
+
+.ticket-filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.ticket-filters button {
+  padding: 4px 12px;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.ticket-filters button.active {
+  background: #2f6feb;
+  border-color: #2f6feb;
+  color: #fff;
+}
+
+.ticket-list {
+  list-style: none;
+  padding: 0;
+}
+
+.ticket-list li {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border: 1px solid #e2e2e2;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.title {
+  flex: 1;
+}
+
+.status {
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.status-open {
+  background: #fdecea;
+  color: #c0392b;
+}
+
+.status-in_progress {
+  background: #fff4e5;
+  color: #b9770e;
+}
+
+.status-closed {
+  background: #eafaf1;
+  color: #1e8449;
+}
+
+.priority {
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.priority-low {
+  background: #f2f4f6;
+  color: #666;
+}
+
+.priority-medium {
+  background: #e8f0fe;
+  color: #1a56db;
+}
+
+.priority-high {
+  background: #fdecea;
+  color: #c0392b;
+  font-weight: 600;
+}
+
+.time {
+  color: #888;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+/* ---- 工单草稿（Day 10）---- */
+.drafts h2 {
+  font-size: 18px;
+}
+
+.draft-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.draft-form input {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.draft-form button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  background: #2b6cb0;
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.draft-msg {
+  color: #1e8449;
+  font-size: 13px;
+}
+
+.draft-list {
+  list-style: none;
+  padding: 0;
+}
+
+.draft-list li {
+  padding: 10px 12px;
+  border: 1px solid #e2e2e2;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.draft-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.draft-content {
+  margin: 6px 0;
+  color: #555;
+  font-size: 13px;
+}
+
+.draft-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.draft-actions button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  background: #2b6cb0;
+  color: #fff;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.draft-note {
+  color: #888;
+  font-size: 13px;
+}
+
+.status-pending {
+  background: #fff4e5;
+  color: #b9770e;
+}
+
+.status-confirmed {
+  background: #eafaf1;
+  color: #1e8449;
+}
+
+.status-cancelled {
+  background: #f1f3f5;
+  color: #666;
+}

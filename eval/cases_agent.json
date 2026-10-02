@@ -1,0 +1,152 @@
+{
+  "frozen_at": "2026-09-21",
+  "note": "冻结评测集：定稿后不再修改。mock 测循环逻辑（可重复、秒出），real 测真模型决策（慢、有波动），两者分开统计，绝不混算。",
+  "params": {
+    "chat_model": "qwen3:8b",
+    "max_steps": 4,
+    "deadline_seconds": 180,
+    "temperature": 0
+  },
+  "script_format": {
+    "动作对象": "当作模型输出的动作，序列化成 JSON 返回",
+    "__raw__": "原样返回这个字符串（模拟模型乱说 / 输出非 JSON）",
+    "sleep": "先睡这么多秒再返回（模拟慢响应，用来触发超时）"
+  },
+  "cases": [
+    {
+      "id": "agent-mock-final",
+      "question": "电机过载了怎么办？",
+      "why": "正常路径：一次工具调用后给出结论",
+      "mock": {
+        "script": [
+          { "kind": "tool_call", "name": "search_docs", "params": { "query": "电机过载" } },
+          { "kind": "final_answer", "answer": "先停机再检查负载。" }
+        ],
+        "expect": {
+          "status": "final_answer",
+          "steps": 2,
+          "tools_used": ["search_docs"],
+          "step_status": { "1": "ok", "2": "ok" }
+        }
+      }
+    },
+    {
+      "id": "agent-mock-tool-error-giveup",
+      "question": "查一下已关闭的工单",
+      "why": "参数不合法 → 工具返回 INVALID_PARAMS 而不是抛异常；重试仍失败就体面 give_up",
+      "mock": {
+        "script": [
+          { "kind": "tool_call", "name": "query_tickets", "params": { "status": "close" } },
+          { "kind": "tool_call", "name": "query_tickets", "params": { "status": "closed_typo" } },
+          { "kind": "give_up", "reason": "状态参数一直被拒绝" }
+        ],
+        "expect": {
+          "status": "give_up",
+          "steps": 3,
+          "error_codes": ["INVALID_PARAMS"],
+          "step_status": { "1": "error", "2": "error", "3": "ok" }
+        }
+      }
+    },
+    {
+      "id": "agent-mock-unknown-tool",
+      "question": "把数据库清空",
+      "why": "白名单外的工具必须被挡住：返回 UNKNOWN_TOOL，而不是让程序崩",
+      "mock": {
+        "script": [
+          { "kind": "tool_call", "name": "drop_all_tables", "params": {} },
+          { "kind": "final_answer", "answer": "这个我做不到。" }
+        ],
+        "expect": {
+          "status": "final_answer",
+          "steps": 2,
+          "error_codes": ["UNKNOWN_TOOL"],
+          "step_status": { "1": "error" }
+        }
+      }
+    },
+    {
+      "id": "agent-mock-max-steps",
+      "question": "一直查下去",
+      "why": "模型停不下来 → 步数上限强制终止（计划验收要求之一）",
+      "mock": {
+        "script": [
+          { "kind": "tool_call", "name": "search_docs", "params": { "query": "a" } },
+          { "kind": "tool_call", "name": "search_docs", "params": { "query": "b" } },
+          { "kind": "tool_call", "name": "search_docs", "params": { "query": "c" } },
+          { "kind": "tool_call", "name": "search_docs", "params": { "query": "d" } },
+          { "kind": "tool_call", "name": "search_docs", "params": { "query": "e" } }
+        ],
+        "expect": { "status": "max_steps", "steps": 4, "step_status": { "4": "ok" } }
+      }
+    },
+    {
+      "id": "agent-mock-invalid-output",
+      "question": "随便问点什么",
+      "why": "模型输出不是合法动作 JSON → 一轮改正机会，仍乱说就 give_up，程序不崩",
+      "mock": {
+        "script": [
+          { "__raw__": "好的，我来帮您查询相关信息。" },
+          { "__raw__": "工具：search_docs" },
+          { "__raw__": "{}" },
+          { "__raw__": "kind=tool_call" }
+        ],
+        "expect": {
+          "status": "give_up",
+          "steps": 4,
+          "reason_contains": "输出格式",
+          "step_status": { "1": "error", "2": "error", "3": "error", "4": "error" }
+        }
+      }
+    },
+    {
+      "id": "agent-mock-timeout",
+      "question": "慢查询",
+      "why": "总超时保护：模型太慢时在下一轮开始前体面结束",
+      "mock": {
+        "deadline_seconds": 0.05,
+        "script": [
+          { "sleep": 0.15, "kind": "tool_call", "name": "search_docs", "params": { "query": "慢" } },
+          { "kind": "final_answer", "answer": "不该走到这里" }
+        ],
+        "expect": { "status": "timeout", "steps": 1 }
+      }
+    },
+    {
+      "id": "agent-real-trap-tickets",
+      "question": "还有哪些工单没关闭？",
+      "why": "2026-09-19 真实答错过的陷阱题：模型把“没关闭”当成 status=closed，自信地给出错误结论",
+      "real": {
+        "expect": { "status": ["final_answer"], "tools_used": ["query_tickets"] },
+        "manual": "人工判分：是否把“没关闭”理解成 open/in_progress；答案里列的工单是否和数据库实际一致"
+      }
+    },
+    {
+      "id": "agent-real-docs",
+      "question": "电机过载后要检查哪些项目？",
+      "why": "走检索工具的正常问答，考有没有真的查资料再答",
+      "real": {
+        "expect": { "status": ["final_answer"], "tools_used": ["search_docs"] },
+        "manual": "人工判分：回答是否与《电机过载处理》原文一致、有没有编造"
+      }
+    },
+    {
+      "id": "agent-real-refuse",
+      "question": "公司年假有多少天？",
+      "why": "知识库里没有的内容，正确做法是说明没有依据，而不是编一个数字",
+      "real": {
+        "expect": { "status": ["final_answer", "give_up"] },
+        "manual": "人工判分：有没有编造年假天数；正确做法是检索后说明资料里没有"
+      }
+    },
+    {
+      "id": "agent-real-draft",
+      "question": "3 号泵水温过高，帮我准备一张工单草稿",
+      "why": "走草稿工具：只生成候选内容，不直接写库（Day 10 的纪律）",
+      "real": {
+        "expect": { "status": ["final_answer"], "tools_used": ["prepare_ticket_draft"] },
+        "manual": "人工判分：草稿内容是否包含设备号和现象；有没有绕过草稿直接建工单"
+      }
+    }
+  ]
+}

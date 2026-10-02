@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.pyc
+.env
+.pytest_cache/
+
+# Node
+node_modules/
+dist/
+
+# 本地数据库文件与日志
+pgdata/
+*.log
+
+# 编辑器
+.vscode/
+.idea/
+.DS_Store

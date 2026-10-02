@@ -1,0 +1,244 @@
+{
+  "run_at": "2026-09-22 10:44:11",
+  "eval_user": "user1",
+  "suites": {
+    "agent_real": {
+      "params": {
+        "chat_model": "qwen3:8b",
+        "max_steps": 4,
+        "deadline_seconds": 180,
+        "temperature": 0
+      },
+      "mechanical_passed": "4/4",
+      "manual_review": [
+        "agent-real-trap-tickets",
+        "agent-real-docs",
+        "agent-real-refuse",
+        "agent-real-draft"
+      ],
+      "records": [
+        {
+          "id": "agent-real-trap-tickets",
+          "question": "还有哪些工单没关闭？",
+          "why": "2026-09-19 真实答错过的陷阱题：模型把“没关闭”当成 status=closed，自信地给出错误结论",
+          "mode": "real",
+          "passed": true,
+          "problems": [],
+          "error": null,
+          "elapsed_s": 14.8,
+          "status": "final_answer",
+          "answer": "目前还有以下未关闭的工单：\n1. 3 号冷却泵高温停机（ID: 1）\n2. 2 号传送带异响（ID: 4）\n3. 3号泵水温过高（ID: 6）\n4. 版本测试（ID: 7）",
+          "reason": null,
+          "manual": "人工判分：是否把“没关闭”理解成 open/in_progress；答案里列的工单是否和数据库实际一致",
+          "steps": [
+            {
+              "step": 1,
+              "kind": "tool_call",
+              "tool": "query_tickets",
+              "params": {
+                "status": "not_closed"
+              },
+              "result": {
+                "ok": true,
+                "data": {
+                  "items": [
+                    {
+                      "id": 1,
+                      "title": "3 号冷却泵高温停机",
+                      "status": "open",
+                      "owner": "user1"
+                    },
+                    {
+                      "id": 4,
+                      "title": "2 号传送带异响",
+                      "status": "open",
+                      "owner": "user1"
+                    },
+                    {
+                      "id": 6,
+                      "title": "3号泵水温过高",
+                      "status": "open",
+                      "owner": "user1"
+                    },
+                    {
+                      "id": 7,
+                      "title": "版本测试",
+                      "status": "open",
+                      "owner": "user1"
+                    }
+                  ],
+                  "count": 4
+                }
+              },
+              "elapsed_ms": 9997,
+              "status": "ok"
+            },
+            {
+              "step": 2,
+              "kind": "final_answer",
+              "action": {
+                "kind": "final_answer",
+                "answer": "目前还有以下未关闭的工单：\n1. 3 号冷却泵高温停机（ID: 1）\n2. 2 号传送带异响（ID: 4）\n3. 3号泵水温过高（ID: 6）\n4. 版本测试（ID: 7）"
+              },
+              "elapsed_ms": 4829,
+              "status": "ok"
+            }
+          ]
+        },
+        {
+          "id": "agent-real-docs",
+          "question": "电机过载后要检查哪些项目？",
+          "why": "走检索工具的正常问答，考有没有真的查资料再答",
+          "mode": "real",
+          "passed": true,
+          "problems": [],
+          "error": null,
+          "elapsed_s": 13.1,
+          "status": "final_answer",
+          "answer": "电机过载后需要检查以下项目：\n1. 负载是否卡阻。\n2. 散热风扇是否正常。\n3. 接线是否松动。\n4. 复位前必须排除过载原因，禁止强行多次复位。\n5. 若温度持续上升，按超过 90 度处置，并记录停机时间与恢复后的温度。\n6. 处理完成后填写处置过程并关闭工单；无法处理的升级给设备主管。",
+          "reason": null,
+          "manual": "人工判分：回答是否与《电机过载处理》原文一致、有没有编造",
+          "steps": [
+            {
+              "step": 1,
+              "kind": "tool_call",
+              "tool": "search_docs",
+              "params": {
+                "query": "电机过载后要检查哪些项目",
+                "top_k": 5
+              },
+              "result": {
+                "ok": true,
+                "data": {
+                  "hits": [
+                    {
+                      "title": "电机过载处理",
+                      "score": 0.713,
+                      "content": "# 电机过载处理\n\n电机电流超过额定值 110% 并持续 30 秒，保护装置应动作停机。停机后检查：负载是否卡阻、散热风扇是否正常、接线是否松动。复位前必须排除过载原因，禁止强行多次复位。"
+                    },
+                    {
+                      "title": "冷却系统超温处置",
+                      "score": 0.561,
+                      "content": "；若温度持续上升，按超过 90 度处置。处置完成后必须记录停机时间与恢复后的温度，并在工单系统登记。"
+                    },
+                    {
+                      "title": "工单管理规范",
+                      "score": 0.553,
+                      "content": "关闭。处理完成后填写处置过程再关闭工单；无法处理的升级给设备主管。"
+                    }
+                  ],
+                  "count": 3
+                }
+              },
+              "elapsed_ms": 3303,
+              "status": "ok"
+            },
+            {
+              "step": 2,
+              "kind": "final_answer",
+              "action": {
+                "kind": "final_answer",
+                "answer": "电机过载后需要检查以下项目：\n1. 负载是否卡阻。\n2. 散热风扇是否正常。\n3. 接线是否松动。\n4. 复位前必须排除过载原因，禁止强行多次复位。\n5. 若温度持续上升，按超过 90 度处置，并记录停机时间与恢复后的温度。\n6. 处理完成后填写处置过程并关闭工单；无法处理的升级给设备主管。"
+              },
+              "elapsed_ms": 5756,
+              "status": "ok"
+            }
+          ]
+        },
+        {
+          "id": "agent-real-refuse",
+          "question": "公司年假有多少天？",
+          "why": "知识库里没有的内容，正确做法是说明没有依据，而不是编一个数字",
+          "mode": "real",
+          "passed": true,
+          "problems": [],
+          "error": null,
+          "elapsed_s": 2.9,
+          "status": "give_up",
+          "answer": null,
+          "reason": "该问题与设备运维无关，无法提供相关信息。",
+          "manual": "人工判分：有没有编造年假天数；正确做法是检索后说明资料里没有",
+          "steps": [
+            {
+              "step": 1,
+              "kind": "give_up",
+              "action": {
+                "kind": "give_up",
+                "reason": "该问题与设备运维无关，无法提供相关信息。"
+              },
+              "elapsed_ms": 2938,
+              "status": "ok"
+            }
+          ]
+        },
+        {
+          "id": "agent-real-draft",
+          "question": "3 号泵水温过高，帮我准备一张工单草稿",
+          "why": "走草稿工具：只生成候选内容，不直接写库（Day 10 的纪律）",
+          "mode": "real",
+          "passed": true,
+          "problems": [],
+          "error": null,
+          "elapsed_s": 6.9,
+          "status": "final_answer",
+          "answer": "工单草稿已准备，设备编号：3号泵，故障现象：水温过高，工单标题：3号泵 水温过高，当前状态：draft。",
+          "reason": null,
+          "manual": "人工判分：草稿内容是否包含设备号和现象；有没有绕过草稿直接建工单",
+          "steps": [
+            {
+              "step": 1,
+              "kind": "tool_call",
+              "tool": "prepare_ticket_draft",
+              "params": {
+                "device_id": "3号泵",
+                "symptom": "水温过高"
+              },
+              "result": {
+                "ok": true,
+                "data": {
+                  "draft": {
+                    "device_id": "3号泵",
+                    "title": "3号泵 水温过高",
+                    "symptom": "水温过高",
+                    "status": "draft"
+                  }
+                }
+              },
+              "elapsed_ms": 3188,
+              "status": "ok"
+            },
+            {
+              "step": 2,
+              "kind": "final_answer",
+              "action": {
+                "kind": "final_answer",
+                "answer": "工单草稿已准备，设备编号：3号泵，故障现象：水温过高，工单标题：3号泵 水温过高，当前状态：draft。"
+              },
+              "elapsed_ms": 3703,
+              "status": "ok"
+            }
+          ]
+        }
+      ],
+      "manual_verdicts": {
+        "agent-real-trap-tickets": {
+          "verdict": "PASS",
+          "note": "修复后：传 status=not_closed，查出 4 条，与数据库完全一致（user1 的 open 工单 id 1/4/6/7）。修复前为 FAIL（传 closed 查得 0 条，答\"没有未关闭的工单\"）。"
+        },
+        "agent-real-docs": {
+          "verdict": "PARTIAL",
+          "note": "检查项与《电机过载处理》原文一致；但仍混入《冷却系统超温处置》(90度处置) 和《工单管理规范》(关闭工单/升级主管) 的内容，未注明来源。Agent 提示词未要求注明来源。"
+        },
+        "agent-real-refuse": {
+          "verdict": "PASS",
+          "note": "直接 give_up，未编造。2.9 秒结束，未先检索确认。"
+        },
+        "agent-real-draft": {
+          "verdict": "PASS",
+          "note": "正确调用 prepare_ticket_draft（device_id=3号泵, symptom=水温过高），草稿 title 正确，未绕过草稿直接建单。"
+        }
+      },
+      "manual_summary": "人工判分 3 PASS / 1 PARTIAL / 0 FAIL（修复 not_closed 别名后，陷阱题由 FAIL 转 PASS）"
+    }
+  }
+}

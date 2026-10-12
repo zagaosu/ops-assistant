@@ -8,7 +8,7 @@
 
 | 功能 | 说明 |
 |---|---|
-| **知识问答** | 问"电池冒烟起火了怎么处置"，从 10 份运维 SOP 里检索相关片段，**带来源**回答；资料里没有的直接拒答，不编造 |
+| **知识问答** | **混合检索**（向量语义 + BM25 关键词，双阈值入选）→ 检索相关片段 → **带来源**回答；资料里没有的直接拒答，不编造 |
 | **工单查询** | Agent 自主决定调用工具查工单，且**只查得到自己名下的** |
 | **草稿转工单** | 口语描述的故障 → 生成草稿 → 用户确认才真正落库；**重复确认不会重复建单**（幂等） |
 | **会话记忆** | 会话与历史存数据库，刷新不丢；每次提问只带最近 6 条（上下文预算） |
@@ -130,7 +130,7 @@ D:/anaconda/envs/spider_env/python.exe -m pytest tests/ -v
 题目冻结在 `eval/cases_rag.json`（检索命中 / 该拒答）和 `eval/cases_agent.json`（工具与 Agent 循环）。
 
 ```bat
-:: 检索质量（真 embedding，14 题：10 该命中 + 4 该拒答）
+:: 检索质量（真 embedding，20 题：15 该命中 + 5 该拒答）
 D:/anaconda/envs/spider_env/python.exe -X utf8 eval/run_eval.py --suite rag
 
 :: Agent 循环逻辑（脚本 Fake，秒出，不调用模型）
@@ -140,8 +140,12 @@ D:/anaconda/envs/spider_env/python.exe -X utf8 eval/run_eval.py --suite agent --
 D:/anaconda/envs/spider_env/python.exe -X utf8 eval/run_eval.py --suite agent --mode real
 ```
 
-最近一次结果：**检索 14/14**（命中 10/10、拒答 4/4）；**Agent 循环 6/6**（假模型）；
+最近一次结果：**检索 19/20**（命中 15/15、拒答 4/5）；**Agent 循环 6/6**（假模型）；
 **Agent 决策**：机械断言 4/4，人工判分 3 PASS / 1 PARTIAL。
+
+那道没过的检索题是 `rag-hard-neg-05`（"这台设备修一次要多少钱？"）——知识库里没有成本信息，
+但它的向量分 0.567 刚过阈值，前三名又挤在一起，**检索层无法把它和真正的命中题区分开**（实测数据证明：
+命中题 `rag-hard-01` 的分布形状和它几乎一样）。这是检索层的能力边界，需要在**生成层**兜底。
 
 每次运行都把逐题原始输出写进 `eval/reports/<时间>_<套件>-<模式>.json`。
 **脚本 Fake（mock）和真模型（real）的数字分开统计，不合并**——假模型只能证明代码逻辑对，证明不了模型答得好。

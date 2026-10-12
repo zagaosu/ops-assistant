@@ -13,6 +13,7 @@ from sqlalchemy import select
 
 from db import SessionLocal
 from models import Chunk, Document
+import bm25
 import cache
 
 EMBED_MODEL = "bge-m3"
@@ -21,6 +22,9 @@ TOP_K = 3
 # 相似度阈值：低于它视为"不相关"，宁可不答也不硬答
 # （实测：无关问题最高约 0.45，相关问题 0.66 以上，中间留出安全带）
 MIN_SCORE = 0.55
+# BM25 阈值：和 MIN_SCORE 不能合并，两者量纲不同（余弦 0~1，BM25 无界）
+# 实测分布（20 道评测题）：无关问题 BM25 = 0，擦边题 ≈ 3，精确词命中 ≥ 7
+BM25_MIN_SCORE = 5.0
 OLLAMA = "http://localhost:11434"
 
 
@@ -98,10 +102,27 @@ def search(query: str, top_k: int = TOP_K, min_score: float = MIN_SCORE, user=No
             "title": doc.title,
             "content": chunk.content,
         })
+    if not scored:
+        return []
 
-    scored.sort(key=lambda x: x["score"], reverse=True)
-    # 只保留分数过线的：全部不过线就返回空列表（由调用方决定怎么"体面拒答"）
-    hits = [h for h in scored[:top_k] if h["score"] >= min_score]
+    # ---- 第二路：BM25 关键词分数 ----
+    # 向量分数会被整篇文档的语义"平均"掉，正文里的低频精确词（"润滑脂"）容易淹没；
+    # BM25 恰好相反——它只看词有没有出现，罕见词权重还更高。两路互补。
+    bm_scores = bm25.score(query, [bm25.tokenize(c["content"]) for c in scored])
+    for c, s in zip(scored, bm_scores):
+        c["bm25"] = round(s, 3)
+
+    # ---- 入选条件：任一路过线 ----
+    # 语义够近（向量过线）或 精确词强命中（BM25 过线）都算数。
+    # 两个阈值分开设，因为量纲不同、实测分布也不同。
+    #
+    # 排序仍用向量分数，不做 RRF 融合 —— 这是实测后的决定：
+    # RRF 只看名次不看分数，会把"向量 0.79 vs 0.58"这种明显差距抹平，
+    # 导致最相关的块被挤到后面（rag-01 和 rag-hard-04 都出现过）。
+    # BM25 在这个流程里的职责是"把漏召回的捞回来"，不是"重排"。
+    selected = [c for c in scored if c["score"] >= min_score or c["bm25"] >= BM25_MIN_SCORE]
+    selected.sort(key=lambda x: x["score"], reverse=True)
+    hits = selected[:top_k]
     cache.put(key, hits)
     return visible_only(hits, username)
 

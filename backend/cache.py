@@ -23,7 +23,10 @@ load_dotenv(Path(__file__).parent / ".env")
 
 REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
 TTL_SECONDS = 600  # 兜底过期：10 分钟自动作废，防止任何没想到的失效漏洞
-SCHEMA_VERSION = "v2"  # 缓存值的格式变了就改这个数字，旧缓存自然作废（不用手动清 Redis）
+SCHEMA_VERSION = "v4"  # 缓存值的格式变了就改这个数字，旧缓存自然作废（不用手动清 Redis）
+# 注意：不只是"结构变了"要改——"含义变了"也要改。
+# 这次就是教训：结果的结构没动，但排序规则从 RRF 改回了向量分数，
+# 没 bump 版本号时读到的还是旧排序，白跑一轮评测。
 
 _client = redis.Redis.from_url(REDIS_URL, decode_responses=True)
 
